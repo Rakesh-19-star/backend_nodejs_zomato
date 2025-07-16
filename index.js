@@ -7,7 +7,7 @@ const  productRoutes=require('./routes/productRoutes')
 
 dotenv.config();
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT||4000;
 
 // Middleware
 app.use(express.json());
@@ -22,7 +22,7 @@ app.use("/uploads", express.static("uploads")); // Serve static files from the u
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-app.get("/home", (req, res) => res.send("Welcome to Zomato backend"));
+app.get("/", (req, res) => res.send("Welcome to Zomato backend"));
 
 // Connect to MongoDB
 mongoose
