@@ -89,6 +89,12 @@ const deleteProductById=async(req,res)=>{
             return res.status(404).json({message:"Product not found"});
             console.log("Product not found");
         }
+        await Firm.updateMany(
+            {products: productId}, // Find firms that have this product
+            { $pull: { products: productId } } // Remove the product ID from the products array
+        ) 
+        return res.status(200).json({ message: "Product deleted successfully" });
+        console.log("Product deleted successfully:", deletedProduct); // Log the deleted product details    
     }
     catch(error){
         console.error("Error deleting product:", error);

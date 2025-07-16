@@ -19,46 +19,62 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });     
 // Middleware to handle file uploads
 const addFirm = async (req, res) => {
-   
-    try{
-        const {firmName,area,category,region,offer} = req.body;
-        const image = req.file? req.file.path : undefined; // Get the uploaded file path 
-        const vendor=await Vendor.findById(req.vendorId);// Get the vendor ID from the request 
-        if(!vendor){
-            return res.status(404).json({message:"Vendor not found"}); 
-        }   
-        const firm =new Firm({firmName,area,category,region,offer,image,vendor:vendor._id});// Create a new Firm instance with the provided data 
-        // Associate the firm with the vendor by setting the vendor field in the Firm schema
-        // Add the firm to the vendor's firm array
-    
-        
-       const savedFirm= await firm.save(); 
-        vendor.firm.push(savedFirm._id); // Add the firm ID to the vendor's firm array
-               return res.status(201).json({message:"Firm added successfully",firm}); // Return a success response with the created firm
+    try {
+        const { firmName, area, category, region, offer } = req.body;
+        const image = req.file ? req.file.path : undefined;
+        const vendor = await Vendor.findById(req.vendorId);
 
-    }catch(error){
+        if (!vendor) {
+            return res.status(404).json({ message: "Vendor not found" });
+        }
+
+        const firm = new Firm({
+            firmName,
+            area,
+            category,
+            region,
+            offer,
+            image,
+            vendor: vendor._id
+        });
+
+        const savedFirm = await firm.save();
+        vendor.firm.push(savedFirm._id);
+        await vendor.save(); // <-- Important
+
+        return res.status(201).json({ message: "Firm added successfully", firm });
+    } catch (error) {
         console.error("Error adding firm:", error);
-        return res.status(500).json({message:"Error adding firm",error:error.message}); // Return an error response
-
+        return res.status(500).json({ message: "Error adding firm", error: error.message });
     }
+};
 
-   
-
-
-}
 const deleteFirmById = async (req, res) => {
     try {
-        const firmId = req.params.firmId; // Get the firm ID from the request parameters
-        const firm = await Firm.findByIdAndDelete(firmId); // Find and delete the firm by ID
+        const firmId = req.params.firmId;
+
+        // Delete the firm
+        const firm = await Firm.findByIdAndDelete(firmId);
         if (!firm) {
+            console.error("Firm not found");
             return res.status(404).json({ message: "Firm not found" });
-            console .error("Firm not found");
-        }   
-    }catch(error){
+        }
+
+        // Remove reference from Vendor
+        await Vendor.updateOne(
+            { _id: firm.vendor },
+            { $pull: { firm: firmId } }
+        );
+
+        console.log("Firm deleted successfully:", firm);
+        return res.status(200).json({ message: "Firm deleted successfully" });
+
+    } catch (error) {
         console.error("Error deleting firm:", error);
-        return res.status(500).json({ message: "Error deleting firm", error: error.message }); // Return an error response
+        return res.status(500).json({ message: "Error deleting firm", error: error.message });
     }
-}
+};
+
 
 module.exports = {
     addFirm:  [upload .single('image'),addFirm,],deleteFirmById
