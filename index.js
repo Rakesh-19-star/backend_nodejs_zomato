@@ -4,6 +4,14 @@ const dotenv = require("dotenv");
 const vendorRoutes = require("./routes/vendorRoutes");
 const firmRoutes = require("./routes/firmRoutes");  
 const  productRoutes=require('./routes/productRoutes')
+const cors = require("cors");
+
+const corsOptions = {
+  origin: "*", // Or specify: "http://localhost:3000"
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
 
 dotenv.config();
 const app = express();
@@ -11,6 +19,7 @@ const PORT = process.env.PORT||4000;
 
 // Middleware
 app.use(express.json());
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
